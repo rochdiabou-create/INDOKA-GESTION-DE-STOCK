@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestion de stock – INDOKA</title>
+<style>
+:root{color-scheme:light dark;--bg:#eef1f4;--cd:#fff;--tx:#16202a;--mu:#5b6877;--bd:#d6dde4;--ac:#0b5d73;--pn:#0b3b4a;--pt:#eaf6f8;--ok:#1a7347;--wa:#a15c00;--ko:#b42318;--sl:#e1eef2;font:14px/1.4 "Segoe UI Variable","Segoe UI",system-ui,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#0f161c;--cd:#17212a;--tx:#e6edf3;--mu:#93a3b2;--bd:#27333e;--ac:#5cc4dc;--pn:#0d2f3a;--ok:#4cc38a;--wa:#f0b24a;--ko:#ff8a7a;--sl:#1a3340}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--cd);border-bottom:1px solid var(--bd)}
+h1{font-size:19px;margin:0}h2{font-size:15px;margin:0 0 10px}
+.mu{color:var(--mu)}
+.kpi{display:flex;gap:10px}.kpi div{padding:6px 14px;border:1px solid var(--bd);border-radius:8px;color:var(--mu);font-size:12px}
+.kpi b{display:block;font-size:20px;color:var(--tx);font-variant-numeric:tabular-nums}
+main{display:grid;grid-template-columns:minmax(290px,360px) 1fr;gap:16px;padding:16px 20px;align-items:start}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-top:16px}
+.pn{background:var(--pn);color:var(--pt);border-radius:14px;padding:16px}
+.pn .mu{color:#a9cdd6}.pn code{display:block;margin-top:8px;font-size:11px;word-break:break-all;color:#c7e3ea}
+input,select,button{font:inherit;color:inherit}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--cd)}
+.pn input{background:#fff;color:#16202a;border-color:transparent}
+#scan{font-size:22px;padding:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.big{font-size:46px;font-weight:700;line-height:1;margin:10px 0 2px;font-variant-numeric:tabular-nums}.big small{font-size:14px;font-weight:400;color:#a9cdd6}
+.row{display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;margin-top:12px}
+#hint{font-size:12px;margin-top:6px;color:#a9cdd6}
+button{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--cd);cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--ac)}
+button.p{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600}
+.in,.out{color:#fff;font-weight:600;border-color:transparent}.in{background:#1a7347}.out{background:#b42318}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}.pn :focus-visible{outline-color:#fff}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.tools .sp{flex:1}
+.tools input{width:190px}.tools select{width:auto}
+.tw{overflow:auto;max-height:calc(100vh - 190px);background:var(--cd);border:1px solid var(--bd);border-radius:12px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--bd)}
+th{position:sticky;top:0;background:var(--cd);color:var(--mu);font-size:12.5px;white-space:nowrap}
+.n{text-align:right;font-variant-numeric:tabular-nums}td.m{font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{cursor:pointer}tbody tr:hover,tr.s{background:var(--sl)}tr.s{box-shadow:inset 3px 0 var(--ac)}
+.bd{padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ok)}.wa{color:var(--wa)}.ko{color:var(--ko)}
+ul{list-style:none;margin:0;padding:0;font-size:12.5px}li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}
+dialog{border:1px solid var(--bd);border-radius:14px;background:var(--cd);color:var(--tx);padding:18px;width:min(560px,94vw)}dialog::backdrop{background:#0009}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g label{font-size:12px;color:var(--mu)}.g .w{grid-column:1/-1}.ac{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+#st{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:92vw}
+#st.on{opacity:1}#st.ok{border-left:5px solid var(--ok)}#st.ko{border-left:5px solid var(--ko)}
+.pr{display:none}
+@media print{:root{--bg:#fff;--cd:#fff;--tx:#000;--mu:#444;--bd:#bbb;--sl:#fff}header .kpi,#side,.tools,#st{display:none!important}main{display:block;padding:0}.pr{display:block}.tw{max-height:none;overflow:visible;border:0}th{position:static}tr{break-inside:avoid}body{font-size:11px}tr.s{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>Gestion de stock</h1><div class="mu">Produits finis INDOKA</div></div>
+ <div class="kpi"><div>Produits<b id="k1">0</b></div><div>Unités en stock<b id="k2">0</b></div><div>Ruptures<b id="k3">0</b></div></div>
+</header>
+<main>
+ <aside id="side">
+  <section class="pn">
+   <h2>Scanner un code-barres</h2>
+   <input id="scan" placeholder="Scannez ou saisissez, puis Entrée" autocomplete="off" inputmode="numeric" aria-label="Code-barres">
+   <div id="sel" style="margin-top:12px"></div>
+   <div class="row"><input id="qty" type="number" min="1" value="1" aria-label="Quantité"><button class="in" onclick="mov('e')">＋ Entrée</button><button class="out" onclick="mov('s')">− Sortie</button></div>
+   <div id="hint"></div>
+  </section>
+  <section class="cd"><h2>Derniers mouvements</h2><ul id="log"></ul></section>
+ </aside>
+ <section>
+  <div class="tools">
+   <button class="p" onclick="openDlg()">＋ Ajouter</button><button onclick="editSel()">✎ Modifier</button><button id="bd" onclick="del()">✕ Supprimer</button><button onclick="undo()">↶ Annuler</button><button onclick="save()">⤓ Sauvegarder</button><button onclick="window.print()">⎙ Imprimer</button>
+   <span class="sp"></span><input id="q" placeholder="Rechercher…" oninput="render()" aria-label="Rechercher"><select id="cf" onchange="render()" aria-label="Catégorie"></select>
+  </div>
+  <div class="pr"><h1>État du stock au <span id="pd"></span></h1></div>
+  <div class="tw"><table>
+   <thead><tr><th>Catégorie<th>Code-barres<th>Désignation<th>Marque<th class="n">Stock initial<th class="n">Entrées<th class="n">Sorties<th class="n">Stock restant<th>État</tr></thead>
+   <tbody id="tb"></tbody>
+  </table></div>
+ </section>
+</main>
+<dialog id="dlg">
+ <h2 id="dt"></h2>
+ <div class="g">
+  <label>Catégorie<input id="f_c" list="cats"></label><label>Code-barres<input id="f_b" inputmode="numeric"></label>
+  <label class="w">Désignation<input id="f_n"></label>
+  <label>Marque<input id="f_m"></label><label>Emplacement<input id="f_l"></label>
+  <label>Stock initial<input id="f_i0" type="number"></label><label>Stock min.<input id="f_mi" type="number"></label><label>Stock max.<input id="f_ma" type="number"></label>
+ </div>
+ <div class="ac"><button onclick="$('#dlg').close()">Annuler</button><button class="p" onclick="saveP()">Enregistrer</button></div>
+</dialog>
+<datalist id="cats"></datalist>
+<div id="st" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),F=['c','b','n','m','l','i0','mi','ma'],KEY='indoka_stock_v1';
+const DATA=[{"c":"CAPSULES","b":"6111246415580","n":"Oil-Ail 90 CAPSULES (Cosmétique)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111246415582","n":"VITA ARGA D3 60 capsules","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248410361","n":"BIOFORMA 90 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248411072","n":"PRIME 30 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248413000","n":"Q10 30 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415551","n":"OMEGA 3,6,9 30 CAPSULES 500 MG","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415552","n":"BATMOZEN OMEGA 3 120 CAPSULES 500 MG","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415572","n":"NEWOS VITAMINE D3&K2 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415574","n":"Vitamine E 60 capsules","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415575","n":"HUILE DE PEPINS DE COURGE 90 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415576","n":"JORTOUMA 28 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248415585","n":"FISH OIL (Huile de foie de morue) 120 capsule","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111248704019","n":"E-OIL 400UI ( COMPLEMENT ALIMENTAIRE)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111350411004","n":"OMEGA 3 1000MG 60 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111350411005","n":"Q10 60 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"CAPSULES","b":"6111350411006","n":"OMEGA 3 KIDS 250MG 120 CAPSULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"611124841051","n":"NUTRA LEVURE ET SELENIUM BIO 120 comprimés","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248410188","n":"VITA C ASCORBIQ 90 COMPRIMES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248410479","n":"NUTRA LEVURE ET SELENIUM BIO 410 comprimés","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248410489","n":"ACEROLAZEN 60 Comprimés","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248410491","n":"MAX BIOTINE 90 COMPRIMES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248410859","n":"ZINCORIP (ZINC) 90 COMPRIMES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248411000","n":"MULTIVITAMINE 60 COMPRIMES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248411002","n":"VITAMINE D3 60 comprimés","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248411102","n":"ZINACOC COMPLEX 90 COMPRIMES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248413371","n":"VITAFORCE C-propolise 60 comprimes","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248415553","n":"SPIRULINES 120 comprimés","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248415555","n":"SPIRULINES 240 comprimés","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"COMPRIMES","b":"6111248786923","n":"VITAMINE B 12 60 COMPRIMES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248111848","n":"VINAIGRE DE CIDRE DE POMME 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248111893","n":"ASHWAGANDA 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248224333","n":"5 HTTP 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410488","n":"OSTEOZEN 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410561","n":"BIO-LIFT COLLAGENE 90 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410569","n":"NEW CARTI 60 GELULES(CARTILAGE DE REQUIN)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410699","n":"DIAFIT 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410781","n":"REPASOME (L-Tryptophane(mélatonine)) 60GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410828","n":"CAFE VERT 90 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410835","n":"INDOHYAL (Acide Hyaluronique+Collagen mari+Vitamine C+Vitamine A) 60 gélules","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410838","n":"CAFE VERT THE VERT 90 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410977","n":"MELATONINE 2 mg 20 Gélules (blister)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248410978","n":"MELATONINE 2 mg 60 Gélules","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248411005","n":"MORINGA 90 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248411100","n":"PROBIOTE C 90 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248411863","n":"HERBA-FOIE 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248412064","n":"GLUTATHION REDUIT","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248415200","n":"LION S MANE 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248415557","n":"CAFE VERT THE VERT FORT 90 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248415570","n":"ADAFER Plus 30 Gelules BLISTER","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248415571","n":"ADAMAG 300 40 GELULES(MAGNESIUM)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248415577","n":"COLLAGENE MARIN 90 Gélules (SKINFORT)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248420056","n":"ADAVIMAG 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248421008","n":"CAPIROC 36 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248421305","n":"L-CARNITINE 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248423354","n":"CREAMAX 240 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248424184","n":"L ARGININE 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248437894","n":"MAGNESIUM GLYCINATE 40 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248437895","n":"MAGNESIUM TOURATE 40 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248450283","n":"CURCUMA 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248740215","n":"ADAFER Plus 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248801268","n":"LIBIMAX 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GELULES","b":"6111248901777","n":"SHILAJIT 60 GELULES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411007","n":"D3 + K2 30 Gummies","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411008","n":"D3 + K2 60 Gummies","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411009","n":"L-ARGININE 30 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411010","n":"MELATONINE 60 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411011","n":"L-ARGININE 60 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411012","n":"SHILAJIT 60 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411013","n":"ASHWAGANDHA 60 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411014","n":"MELATONINE 30 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411015","n":"ASHWAGANDHA 30 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411016","n":"SHILAJIT 30 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411032","n":"BONBONS MULTIVITAMINE 60 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"GUMMIES","b":"6111248411033","n":"BONBONS MULTIVITAMINE 30 GUMMIES","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"PACK","b":"6111248888887","n":"Pack BEAUTÉ(SKINFORT COLLAGÉNE MARIN+MAX BIOTINE)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"PACK","b":"6111248888888","n":"Pack DUO VITALITÉ(NUTRA LEVURE+BIOFORMA)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"PACK","b":"6111248888899","n":"PACK NEW CARTI(NEW CARTI 60 GELULES+PHYTOFLAM)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"PACK","b":"6111248888909","n":"PACK RELAX(ZINCORIP 30 COMPRIMES+MAGNESIUM CITRATE 60 GELULES)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"PACK","b":"6111248888910","n":"PACK CARDIO(BATMOZEN OMEGA 3+Q10 CO-ENZYME 30 CAPSULES)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"PACK","b":"6111248888911","n":"PACK HEALTHY(MAGNESIUM GLYCINATE+NEWOS VITAMINE D3+K2)","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"POUDRES","b":"6111248423460","n":"NATU CREATINE POUDRE 160G","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"SEL","b":"6111248410408","n":"SEL ZERO 30 SACHET","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"SERUM","b":"6111000478417","n":"BIO-LIFT SERUM  50 ML","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"SERUM","b":"6111248410371","n":"VITAMINE E ANTI-OXYDANT NATURELLE SERUM 10","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"SERUM","b":"6111248410842","n":"Acide Hyaluronique serum 10 ml","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"SPRAY","b":"6111248025794","n":"CAPIROC SPRAY 120ML","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"TUBE","b":"6111248410385","n":"GEL ALOEVERA 90 % PUR ET NATUREL 200 ML","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"TUBE","b":"6111248411017","n":"PHYTOFLAM 80ML","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"TUBE","b":"6111248415683","n":"INDOSUN","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"VINAIGRES","b":"6111248410378","n":"VINAIGRE DE POMME 250 ML","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0},{"c":"VINAIGRES","b":"6111248410538","n":"VINAIGRE DE RAISIN 250 ML","m":"INDOKA","mi":0,"ma":100,"l":"STOCK PRODUIT FINI","i0":0}];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
+// Équivalent JavaScript de =SOMME.SI(plage_critère; critère; plage_somme)
+const SOMME_SI=(rng,crit,som)=>som.reduce((t,v,i)=>rng[i]===crit?t+v:t,0);
+function load(){try{const j=localStorage.getItem(KEY);if(j)return JSON.parse(j)}catch(e){}return{p:DATA,mv:[]}}
+let S=load(),sel=null,mode='e',hist=[],edit=null,stT,delT;
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const commit=()=>{persist();render()};
+const snap=()=>{hist.push(JSON.stringify(S));if(hist.length>50)hist.shift()};
+const prod=b=>S.p.find(x=>x.b===b);
+const idx=()=>({b:S.mv.map(x=>x.b),e:S.mv.map(x=>x.e),s:S.mv.map(x=>x.s)});
+const calc=(p,I=idx())=>{const e=SOMME_SI(I.b,p.b,I.e),s=SOMME_SI(I.b,p.b,I.s);return{e,s,r:p.i0+e-s}};
+function say(m,k=''){const e=$('#st');e.textContent=m;e.className='on '+k;clearTimeout(stT);stT=setTimeout(()=>e.className='',3200)}
+
+function render(){
+ const I=idx(),q=$('#q').value.trim().toLowerCase(),cur=$('#cf').value,cs=[...new Set(S.p.map(p=>p.c))].sort();
+ $('#cf').innerHTML='<option value="">Toutes les catégories</option>'+cs.map(c=>`<option>${esc(c)}</option>`).join('');$('#cf').value=cur;
+ $('#cats').innerHTML=cs.map(c=>`<option value="${esc(c)}">`).join('');
+ let units=0,out=0;const rows=S.p.map(p=>({p,...calc(p,I)}));
+ rows.forEach(x=>{units+=x.r;if(x.r<=x.p.mi)out++});
+ $('#tb').innerHTML=rows.filter(({p})=>(!cur||p.c===cur)&&(!q||(p.n+p.b+p.c).toLowerCase().includes(q))).map(({p,e,s,r})=>{
+  const t=r<=p.mi?['Rupture','ko']:r>p.ma?['Surstock','wa']:['OK','ok'];
+  return`<tr data-b="${esc(p.b)}" class="${p.b===sel?'s':''}"><td>${esc(p.c)}<td class="m">${esc(p.b)}<td>${esc(p.n)}<td>${esc(p.m)}<td class="n">${p.i0}<td class="n">${e}<td class="n">${s}<td class="n"><b>${r}</b><td><span class="bd ${t[1]}">${t[0]}</span>`}).join('')||'<tr><td colspan="9" class="mu">Aucun produit ne correspond à la recherche.';
+ $('#k1').textContent=S.p.length;$('#k2').textContent=units;$('#k3').textContent=out;
+ $('#pd').textContent=new Date().toLocaleDateString('fr-FR');
+ $('#hint').textContent='La touche Entrée valide une '+(mode==='e'?'entrée':'sortie')+'.';
+ const p=prod(sel),k=p&&calc(p,I);
+ $('#sel').innerHTML=p?`<b>${esc(p.n)}</b><div class="mu">${esc(p.c)}, code ${esc(p.b)}</div><div class="big">${k.r}<small> en stock</small></div><code>=${p.i0}+SOMME.SI(MOUVEMENTS!B:B;${esc(p.b)};MOUVEMENTS!D:D)-SOMME.SI(MOUVEMENTS!B:B;${esc(p.b)};MOUVEMENTS!E:E)<br>= ${p.i0} + ${k.e} − ${k.s}</code>`:'<span class="mu">Scannez un code ou cliquez sur une ligne du tableau.</span>';
+ $('#log').innerHTML=S.mv.slice(-8).reverse().map(x=>`<li><span>${new Date(x.d).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})} ${esc(x.n)}</span><b class="${x.e?'ok':'ko'}">${x.e?'+'+x.e:'−'+x.s}</b>`).join('')||'<li class="mu">Aucun mouvement pour le moment.';
+}
+function pick(b){sel=b;render();const q=$('#qty');q.focus();q.select();const r=$('tr.s');if(r)r.scrollIntoView({block:'nearest'})}
+function mov(t){
+ const p=prod(sel);if(!p)return say('Scannez ou sélectionnez d’abord un produit.','ko');
+ const q=parseInt($('#qty').value);if(!(q>0))return say('Saisissez une quantité supérieure à 0.','ko');
+ const r=calc(p).r;if(t==='s'&&q>r)return say(`Sortie impossible : il reste ${r} en stock.`,'ko');
+ snap();S.mv.push({d:new Date().toISOString(),b:p.b,n:p.n,e:t==='e'?q:0,s:t==='s'?q:0});
+ mode=t;$('#qty').value=1;commit();say(`${t==='e'?'Entrée':'Sortie'} enregistrée : ${q} × ${p.n}`,'ok');$('#scan').focus();
+}
+function openDlg(p,code){
+ edit=p||null;$('#dt').textContent=p?'Modifier le produit':'Ajouter un produit';
+ const d=p||{c:'',b:code||'',n:'',m:'INDOKA',l:'STOCK PRODUIT FINI',i0:0,mi:0,ma:100};
+ F.forEach(k=>$('#f_'+k).value=d[k]);$('#dlg').showModal();$(code?'#f_n':'#f_c').focus();
+}
+function editSel(){prod(sel)?openDlg(prod(sel)):say('Sélectionnez d’abord un produit.','ko')}
+function saveP(){
+ const o={};F.forEach(k=>o[k]=$('#f_'+k).value.trim());['i0','mi','ma'].forEach(k=>o[k]=parseInt(o[k])||0);o.c=o.c.toUpperCase();
+ if(!o.b||!o.n)return say('Le code-barres et la désignation sont obligatoires.','ko');
+ if(S.p.some(x=>x.b===o.b&&x!==edit))return say('Ce code-barres existe déjà.','ko');
+ snap();
+ if(edit){S.mv.forEach(x=>{if(x.b===edit.b){x.b=o.b;x.n=o.n}});Object.assign(edit,o)}else S.p.push(o);
+ sel=o.b;$('#dlg').close();commit();say(edit?'Produit modifié.':'Produit ajouté.','ok');
+}
+function del(){
+ const b=$('#bd');if(!prod(sel))return say('Sélectionnez d’abord un produit.','ko');
+ if(!delT){b.textContent='Confirmer ?';delT=setTimeout(()=>{delT=0;b.textContent='✕ Supprimer'},3000);return}
+ clearTimeout(delT);delT=0;b.textContent='✕ Supprimer';snap();
+ S.p=S.p.filter(x=>x.b!==sel);S.mv=S.mv.filter(x=>x.b!==sel);sel=null;commit();say('Produit supprimé. Utilisez Annuler pour le restaurer.','ok');
+}
+function undo(){if(!hist.length)return say('Aucune action à annuler.','ko');S=JSON.parse(hist.pop());if(!prod(sel))sel=null;commit();say('Dernière action annulée.','ok')}
+
+// ---- Export Excel (.xlsx) avec formules SOMME.SI, sans bibliothèque externe ----
+const crc=(()=>{const t=[...Array(256)].map((_,n)=>{let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;return c>>>0});return u=>{let c=-1;for(const b of u)c=t[(c^b)&255]^(c>>>8);return(c^-1)>>>0}})();
+function zip(files){
+ const te=new TextEncoder(),parts=[],cd=[],n=Object.keys(files).length;let off=0;
+ for(const[k,s]of Object.entries(files)){
+  const nb=te.encode(k),d=te.encode(s),c=crc(d),h=new DataView(new ArrayBuffer(30)),e=new DataView(new ArrayBuffer(46));
+  h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint32(14,c,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nb.length,true);
+  e.setUint32(0,0x02014b50,true);e.setUint16(4,20,true);e.setUint16(6,20,true);e.setUint32(16,c,true);e.setUint32(20,d.length,true);e.setUint32(24,d.length,true);e.setUint16(28,nb.length,true);e.setUint32(42,off,true);
+  parts.push(new Uint8Array(h.buffer),nb,d);cd.push(new Uint8Array(e.buffer),nb);off+=30+nb.length+d.length;
+ }
+ const z=new DataView(new ArrayBuffer(22));z.setUint32(0,0x06054b50,true);z.setUint16(8,n,true);z.setUint16(10,n,true);z.setUint32(12,cd.reduce((a,x)=>a+x.length,0),true);z.setUint32(16,off,true);
+ return new Blob([...parts,...cd,new Uint8Array(z.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+const X=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function cell(r,c,v,f){
+ const a=String.fromCharCode(65+c)+r;
+ if(f)return`<c r="${a}"><f>${X(f)}</f><v>${v}</v></c>`;
+ if(typeof v==='number')return`<c r="${a}"><v>${v}</v></c>`;
+ if(/^\d{1,15}$/.test(v))return`<c r="${a}" s="1"><v>${v}</v></c>`;
+ return`<c r="${a}" t="inlineStr"><is><t>${X(v)}</t></is></c>`;
+}
+const sheet=rows=>`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="22" customWidth="1"/><col min="2" max="2" width="20" customWidth="1"/><col min="3" max="3" width="60" customWidth="1"/></cols><sheetData>${rows.map((r,i)=>`<row r="${i+1}">${r.map((c,j)=>c&&c.f?cell(i+1,j,c.v,c.f):cell(i+1,j,c)).join('')}</row>`).join('')}</sheetData></worksheet>`;
+async function save(){
+ const I=idx(),sf=(r,c)=>`SUMIF(MOUVEMENTS!$B:$B,B${r},MOUVEMENTS!$${c}:$${c})`;
+ const A=[['Catégorie','Code-barres','Désignation','Marque','Stock min','Stock max','Emplacement','Stock initial','Entrées','Sorties','Stock restant'],
+  ...S.p.map((p,i)=>{const r=i+2,k=calc(p,I);return[p.c,p.b,p.n,p.m,p.mi,p.ma,p.l,p.i0,{v:k.e,f:sf(r,'D')},{v:k.s,f:sf(r,'E')},{v:k.r,f:`H${r}+${sf(r,'D')}-${sf(r,'E')}`}]})];
+ const M=[['Date','Code-barres','Désignation','Entrée','Sortie'],...S.mv.map(x=>[new Date(x.d).toLocaleString('fr-FR'),x.b,x.n,x.e,x.s])];
+ const ns='http://schemas.openxmlformats.org/',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',m=ns+'spreadsheetml/2006/main',rl=ns+'officeDocument/2006/relationships',ct='application/vnd.openxmlformats-officedocument.spreadsheetml.',pk=ns+'package/2006/';
+ const blob=zip({
+  '[Content_Types].xml':H+`<Types xmlns="${pk}content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="${ct}sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="${ct}worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="${ct}worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="${ct}styles+xml"/></Types>`,
+  '_rels/.rels':H+`<Relationships xmlns="${pk}relationships"><Relationship Id="rId1" Type="${rl}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+  'xl/workbook.xml':H+`<workbook xmlns="${m}" xmlns:r="${rl}"><sheets><sheet name="PRODUIT MAJ 1" sheetId="1" r:id="rId1"/><sheet name="MOUVEMENTS" sheetId="2" r:id="rId2"/></sheets><calcPr fullCalcOnLoad="1"/></workbook>`,
+  'xl/_rels/workbook.xml.rels':H+`<Relationships xmlns="${pk}relationships"><Relationship Id="rId1" Type="${rl}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${rl}/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="${rl}/styles" Target="styles.xml"/></Relationships>`,
+  'xl/styles.xml':H+`<styleSheet xmlns="${m}"><fonts count="1"><font><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs></styleSheet>`,
+  'xl/worksheets/sheet1.xml':sheet(A),'xl/worksheets/sheet2.xml':sheet(M)});
+ persist();const name='BDD1_stock_'+new Date().toISOString().slice(0,10)+'.xlsx';
+ try{
+  const dl=window.claude&&await window.claude.use('downloads');
+  if(!dl)return say('Téléchargement indisponible ici. Les données restent mémorisées dans ce navigateur.','ko');
+  await dl.save({filename:name,data:blob});say('Fichier Excel enregistré : '+name,'ok');
+ }catch(e){if(!e||e.code!=='declined')say('Enregistrement impossible : '+((e&&e.message)||'erreur'),'ko')}
+}
+
+$('#scan').onkeydown=e=>{
+ if(e.key!=='Enter')return;const v=e.target.value.trim();e.target.value='';if(!v)return;
+ if(prod(v))pick(v);else{say('Code inconnu : '+v,'ko');openDlg(null,v)}
+};
+$('#qty').onkeydown=e=>{if(e.key==='Enter')mov(mode)};
+$('#tb').onclick=e=>{const t=e.target.closest('tr');if(t&&t.dataset.b)pick(t.dataset.b)};
+render();$('#scan').focus();
+</script>
+</body>
+</html>
